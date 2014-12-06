@@ -40,9 +40,10 @@ function projectile:update(dt, shapes)
 			self:remove(v.shape, k)
 		end
 
-		for index,sh in pairs(shapes) do
-			if v.shape:collidesWith(sh.shape) then
-				sh:callback()
+		for key,val in pairs(shapes) do
+			if v.shape:collidesWith(val.shape) then
+				print(inspect(val))
+				val:destroy()
 				self:remove(v.shape, k)
 			end
 		end
