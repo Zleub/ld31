@@ -2,7 +2,7 @@ local projectile = {}
 
 function projectile:new(x, y, orientation)
 	table.insert(self.list, {
-		shape = self.HC:addCircle(x * self.scale, y * self.scale, 1),
+		shape = self.HC:addCircle(x * self.scale, y * self.scale, self.size),
 		orientation = orientation
 	})
 end
@@ -13,6 +13,7 @@ function projectile:init(HC, scale)
 	self.winwidth = love.window.getWidth() / self.scale
 	self.winheight = love.window.getHeight() / self.scale
 	self.list = {}
+	self.size = 1
 	return self
 end
 
@@ -43,7 +44,6 @@ function projectile:update(dt, table)
 		for _, shapes in pairs(table) do
 			for key,val in pairs(shapes) do
 				if v.shape:collidesWith(val.shape) then
-					print('destroy')
 					val:destroy()
 					self:remove(v.shape, k)
 					break ;
@@ -54,9 +54,9 @@ function projectile:update(dt, table)
 end
 
 function projectile:draw()
-	love.graphics.print('Projectiles: '..#self.list, 0, 20)
+	-- love.graphics.print('Projectiles: '..#self.list, 0, 20)
 	for k,v in pairs(self.list) do
-		v.shape:draw()
+		v.shape:draw('fill')
 	end
 end
 

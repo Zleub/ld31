@@ -15,7 +15,7 @@ function enemies.sprite_up(img)
 end
 
 function enemies.delay()
-	return love.math.random(3, 10)
+	return love.math.random(3 - math.floor(level / 3), math.floor((level / 5) + 5))
 end
 
 function enemies:new(nbr, x, y)
@@ -25,15 +25,15 @@ function enemies:new(nbr, x, y)
 			type = 'small',
 			id = #self.list + 1,
 			delay = self.delay(),
-			x = (x - 1) * 8, -- * 64,
-			y = y * 8, -- * 64,
+			x = (x - 1) * 8,
+			y = y * 8,
 			d = 2,
 			orientation = love.math.random(1, 4),
 			shape = self.HC:addRectangle(
 				(x - 1) * self.scale * 8,
 				y * self.scale * 8,
-				8 * self.scale / 2, -- self.d
-				8 * self.scale / 2), -- self.d
+				8 * self.scale / 2,
+				8 * self.scale / 2),
 			destroy = function (self)
 				enemies.list[self.id] = nil
 			end
@@ -43,15 +43,15 @@ function enemies:new(nbr, x, y)
 			type = 'large',
 			id = #self.list + 1,
 			delay = self.delay(),
-			x = (x - 1) * 8, -- * 64,
-			y = y * 8, -- * 64,
+			x = (x - 1) * 8,
+			y = y * 8,
 			d = 1,
 			orientation = love.math.random(1, 4),
 			shape = self.HC:addRectangle(
 				(x - 1) * self.scale * 8,
 				y * self.scale * 8,
-				8 * self.scale / 1, -- self.d
-				8 * self.scale / 1), -- self.d
+				8 * self.scale / 1,
+				8 * self.scale / 1),
 			destroy = function (self)
 				enemies.list[self.id] = nil
 			end
@@ -61,15 +61,15 @@ function enemies:new(nbr, x, y)
 			type = 'medium',
 			id = #self.list + 1,
 			delay = self.delay(),
-			x = (x - 1) * 8, -- * 64,
-			y = y * 8, -- * 64,
+			x = (x - 1) * 8,
+			y = y * 8,
 			d = 1.5,
 			orientation = love.math.random(1, 4),
 			shape = self.HC:addRectangle(
 				(x - 1) * self.scale * 8,
 				y * self.scale * 8,
-				8 * self.scale / 1.5, -- self.d
-				8 * self.scale / 1.5), -- self.d
+				8 * self.scale / 1.5,
+				8 * self.scale / 1.5),
 			destroy = function (self)
 				enemies.list[self.id] = nil
 			end
@@ -134,7 +134,7 @@ function enemies:update(dt, heros)
 
 		if v.delay < 0 then
 			if (math.floor(x_raw) < 10 and math.floor(x_raw) > -10) or (math.floor(y_raw) < 10 and math.floor(y_raw) > -10) then
-				antiprojectile:new(v.x, v.y, v.orientation)
+				antiprojectile:new(v.type, v.x, v.y, v.orientation)
 				v.delay = self.delay()
 			end
 		else
@@ -172,9 +172,7 @@ function enemies:update(dt, heros)
 end
 
 function enemies:draw()
-	love.graphics.print("enemies: "..self.count, 0, 60)
 	for k,v in pairs(self.list) do
-		-- v.shape:draw()
 		love.graphics.draw(
 			self.img,
 			self.sprite[v.orientation],

@@ -1,10 +1,32 @@
 local antiprojectile = {}
 
-function antiprojectile:new(x, y, orientation)
-	table.insert(self.list, {
-		shape = self.HC:addCircle(x * self.scale, y * self.scale, 1),
-		orientation = orientation
-	})
+function antiprojectile:new(type, x, y, orientation)
+	if type ~= 'large' then
+		table.insert(self.list, {
+			shape = self.HC:addCircle(x * self.scale, y * self.scale, 1),
+			orientation = orientation
+		})
+	else
+		if orientation == 1 or orientation == 4 then
+			table.insert(self.list, {
+				shape = self.HC:addCircle(x * self.scale - 10, y * self.scale, 1),
+				orientation = orientation
+			})
+			table.insert(self.list, {
+				shape = self.HC:addCircle(x * self.scale + 10, y * self.scale, 1),
+				orientation = orientation
+			})
+		elseif orientation == 2 or orientation == 3 then
+			table.insert(self.list, {
+				shape = self.HC:addCircle(x * self.scale, y * self.scale - 10, 1),
+				orientation = orientation
+			})
+			table.insert(self.list, {
+				shape = self.HC:addCircle(x * self.scale, y * self.scale + 10, 1),
+				orientation = orientation
+			})
+		end
+	end
 end
 
 function antiprojectile:init(HC, scale)
@@ -48,7 +70,6 @@ function antiprojectile:update(dt, heros)
 end
 
 function antiprojectile:draw()
-	love.graphics.print('Projectiles: '..#self.list, 0, 20)
 	for k,v in pairs(self.list) do
 		v.shape:draw()
 	end

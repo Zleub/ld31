@@ -1,5 +1,3 @@
-inspect = require 'inspect'
-
 function love.center(offx, offy)
 	return love.window.getWidth() + offx, love.graphics.getHeight() + offy
 end
@@ -39,13 +37,9 @@ function love.populate(shapes)
 	local width = winwidth / (8 * scale)
 	local height = winheight / (8 * scale)
 
-	print('width: ', width, '  height: ', height)
-
 	love.fill(array, winheight, winwidth)
 
 	local nbr = love.math.random(math.floor((level / 3) + 1), math.floor((level / 2) + 1))
-	print(nbr, 'level: ', level)
-	print(nbr..' circles !')
 	local circles = {}
 	for i=1, nbr do
 		table.insert(circles,
@@ -53,11 +47,9 @@ function love.populate(shapes)
 			id = #circles + 1,
 			x = love.math.random(width),
 			y = love.math.random(height),
-			r = love.math.random(math.floor((level / 8) + 1), math.floor((level / 6) + 1))
+			r = love.math.random(math.floor((level / 8) + 1), math.floor((level / 7) + 1))
 		})
 	end
-
-	print(inspect(circles))
 
 	for k,v in pairs(circles) do
 		love.circling(width, array, v)
@@ -65,12 +57,10 @@ function love.populate(shapes)
 
 	for j=0,height - 1 do
 		for i=1,width do
-			-- io.write(array[i + j * width])
 			if array[i + j * width] ~= 0 then
 				enemies:new(array[i + j * width], i, j)
 			end
 		end
-		-- io.write('\n')
 	end
 end
 
@@ -87,18 +77,31 @@ function love.button()
 	return shape
 end
 
-function love.merchant()
-	local shape = {}
-	shape.img = love.graphics.newImage("IMG/health.png")
-	shape.img:setFilter('nearest')
-	shape.shape = HC:addRectangle(250, 450, shape.img:getWidth() * scale, shape.img:getHeight() * scale)
-	shape.destroy = function ()
-		table.remove(shapes, 1)
-		heros.life = 20
-		love.populate(shapes)
-		minishop = 0
+function love.merchant(nbr, x, y)
+	if lastcall == nbr then
+		nbr = nbr + 1
+		if lastcall == nbr then
+			nbr = nbr - 2
+		end
 	end
-	return shape
+	lastcall = nbr
+
+	local shape = {}
+	if nbr == 1 then
+		return merchant.health50(x, y)
+	elseif nbr == 2 then
+		return merchant.health75(x, y)
+	elseif nbr == 3 then
+		return merchant.size(x, y)
+	elseif nbr == 4 then
+		return merchant.strife(x, y)
+	elseif nbr == 5 then
+		return merchant.health(x, y)
+	elseif nbr == 6 then
+		return merchant.delay(x, y)
+	elseif nbr == 7 then
+		return merchant.speed(x, y)
+	end
 end
 
 function love.load()
@@ -110,6 +113,7 @@ function love.load()
 	antiprojectile = require 'antiprojectile':init(HC, scale)
 	explosions = require 'explosions':init(scale)
 	enemies = require 'enemies':init(HC, scale)
+	merchant = require 'merchant'
 
 	shapes = {love.button()}
 	minishop = 1
@@ -127,7 +131,9 @@ function love.update(dt)
 	heros:update(dt, shapes)
 	if enemies.count == 0 then
 		if minishop == 0 then
-			table.insert(shapes, love.merchant())
+			table.insert(shapes, love.merchant(love.math.random(1, 2), 250, 450))
+			table.insert(shapes, love.merchant(love.math.random(3, 7), 500, 450))
+			table.insert(shapes, love.merchant(love.math.random(3, 7), 750, 450))
 			level = level + 1
 			minishop = 1
 		end
@@ -135,11 +141,13 @@ function love.update(dt)
 end
 
 function love.draw()
-	love.graphics.print('FPS: '..love.timer.getFPS())
-
-	if level == 1 then
+	if level == 1 and death == nil then
 		love.graphics.setColor(255, 255, 255, 100)
 		love.graphics.draw(instructions, love.window.getWidth() / 2 - (instructions:getWidth() / 2 * 4), 150, 0, 4, 4)
+		love.graphics.setColor(255, 255, 255, 255)
+	elseif death == 1 then
+		love.graphics.setColor(255, 255, 255, 100)
+		love.graphics.print('You reached level '..old_level, 25 * 4, 150, 0, 4, 4)
 		love.graphics.setColor(255, 255, 255, 255)
 	end
 
@@ -149,6 +157,12 @@ function love.draw()
 		if v.img then
 			local point2 = v.shape._polygon.vertices[2]
 			love.graphics.draw(v.img, point2.x, point2.y, 0, scale, scale)
+		end
+		if v.text then
+			love.graphics.setColor(255, 255, 255, 255)
+			local point2 = v.shape._polygon.vertices[2]
+			love.graphics.print(v.text, point2.x, point2.y + 64, 0, 2, 2)
+
 		end
 		-- v.shape:draw()
 	end
@@ -161,17 +175,7 @@ function love.draw()
 end
 
 function love.keypressed(key, unicode)
-	-- if key == 'w' or key == 'up' then
-	-- 	--
-	-- elseif key == 'a' or key == 'left' then
-	-- 	--
-	-- elseif key == 'd' or key == 'right' then
-	-- 	--
-	-- elseif key == 's' or key == 'down' then
-	-- 	--
-	-- end
 	heros:keypressed(key, unicode)
-	-- print(inspect(projectile))
 end
 
 function love.mousepressed(x, y, button)

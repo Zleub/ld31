@@ -8,7 +8,7 @@ function explosions:new(x, y)
 			time = 0,
 			x = x,
 			y = y,
-			orientation = math.floor((math.abs(love.math.random()) + 1) * 10) % 8,
+			orientation = math.floor((math.abs(love.math.randomNormal()) + 1) * 10) % 8,
 			vitesse = math.floor((math.abs(love.math.random()) + 1) * 10) % 8
 		})
 	end
@@ -51,7 +51,7 @@ function explosions:update(dt)
 end
 
 function explosions:draw()
-	love.graphics.print('explosions: '..#self.list, 0, 40)
+	-- love.graphics.print('explosions: '..#self.list, 0, 40)
 	for k,v in pairs(self.list) do
 		love.graphics.circle('fill', v.x, v.y, 2)
 	end
