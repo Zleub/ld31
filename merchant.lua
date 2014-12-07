@@ -103,7 +103,7 @@ function merchant.speed(x, y)
 	shape.id = #shapes + 1
 	shape.img = love.graphics.newImage("IMG/strife.png")
 	shape.img:setFilter('nearest')
-	shape.text = 'SHIFT ++'
+	shape.text = 'SPEED ++'
 	shape.shape = HC:addRectangle(x, y, shape.img:getWidth() * scale, shape.img:getHeight() * scale)
 	shape.destroy = function (self)
 		shapes = {}
