@@ -4,18 +4,35 @@ function love.center(offx, offy)
 	return love.window.getWidth() + offx, love.graphics.getHeight() + offy
 end
 
--- function test(k, circles)
--- 	for key,val in pairs(circles) do
--- 		if k == val.x + val.y * width then
--- 			io.write(" !"..v.."! ")
--- 		else
--- 			io.write("  "..v.."  ")
--- 		end
--- 	end
--- end
+function love.circling(width, array, circle)
+	local y = -circle.r
+	while y <= circle.r do
+		local x = -circle.r
+		while x <= circle.r do
+			if x * x + y * y <= circle.r * circle.r + circle.r * 0.8 then
+				array[(circle.x + x) + (circle.y + y) * width] = circle.id
+			end
+			x = x + 1
+		end
+		y = y + 1
+	end
+end
+
+function love.fill(array, winheight, winwidth)
+	local j = 0
+	while j < winheight do
+		local i = 0
+		while i < winwidth do
+			table.insert(array, 0)
+			i = i + 8 * scale
+		end
+		j = j + 8 * scale
+	end
+end
 
 function love.populate(shapes)
 	local array = {}
+
 	local winwidth = love.window.getWidth()
 	local winheight = love.window.getHeight()
 
@@ -24,7 +41,10 @@ function love.populate(shapes)
 
 	print('width: ', width, '  height: ', height)
 
-	local nbr = love.math.random(3)
+	love.fill(array, winheight, winwidth)
+
+	local nbr = love.math.random(math.floor((level / 3) + 1), math.floor((level / 2) + 1))
+	print(nbr, 'level: ', level)
 	print(nbr..' circles !')
 	local circles = {}
 	for i=1, nbr do
@@ -33,40 +53,52 @@ function love.populate(shapes)
 			id = #circles + 1,
 			x = love.math.random(width),
 			y = love.math.random(height),
-			r = love.math.random(5, 10)
+			r = love.math.random(math.floor((level / 8) + 1), math.floor((level / 6) + 1))
 		})
 	end
 
 	print(inspect(circles))
 
-	local j = 0
-	while j < winheight do
-		local i = 0
-		while i < winwidth do
-			-- table.insert(shapes, {
-			-- 	id = #shapes + 1,
-			-- 	shape = HC:addRectangle(i, j, 8 * scale, 8 * scale),
-			-- 	destroy = function (self) shapes[self.id] = nil end
-			-- })
-			table.insert(array, 0)
-			i = i + 8 * scale
-		end
-		j = j + 8 * scale
+	for k,v in pairs(circles) do
+		love.circling(width, array, v)
 	end
 
-	for k,v in ipairs(array) do
-		-- for key,val in pairs(circles) do
-		-- 	if k == val.x + val.y * width then
-		-- 		io.write(" !"..v.."! ")
-		-- 	else
-				io.write("  "..v.."  ")
-		-- 	end
-		-- end
-		if k % width == 0 then
-			io.write('\n')
+	for j=0,height - 1 do
+		for i=1,width do
+			-- io.write(array[i + j * width])
+			if array[i + j * width] ~= 0 then
+				enemies:new(array[i + j * width], i, j)
+			end
 		end
+		-- io.write('\n')
 	end
+end
 
+function love.button()
+	local shape = {}
+	shape.img = love.graphics.newImage("IMG/newgame_button.png")
+	shape.img:setFilter('nearest')
+	shape.shape = HC:addRectangle(450, 450, shape.img:getWidth() * scale, shape.img:getHeight() * scale)
+	shape.destroy = function ()
+		table.remove(shapes, 1)
+		love.populate(shapes)
+		minishop = 0
+	end
+	return shape
+end
+
+function love.merchant()
+	local shape = {}
+	shape.img = love.graphics.newImage("IMG/health.png")
+	shape.img:setFilter('nearest')
+	shape.shape = HC:addRectangle(250, 450, shape.img:getWidth() * scale, shape.img:getHeight() * scale)
+	shape.destroy = function ()
+		table.remove(shapes, 1)
+		heros.life = 20
+		love.populate(shapes)
+		minishop = 0
+	end
+	return shape
 end
 
 function love.load()
@@ -75,37 +107,56 @@ function love.load()
 	HC = Collider.new(150)
 	heros = require 'heros':init(HC, scale)
 	projectile = require 'projectile':init(HC, scale)
+	antiprojectile = require 'antiprojectile':init(HC, scale)
 	explosions = require 'explosions':init(scale)
+	enemies = require 'enemies':init(HC, scale)
 
-	shapes = {}
-	table.insert(shapes, {})
-	shapes[1].img = love.graphics.newImage("IMG/newgame_button.png")
-	shapes[1].shape = HC:addRectangle(450, 450, shapes[1].img:getDimensions())
-	shapes[1].destroy = function ()
-		table.remove(shapes, 1)
-		love.populate(shapes)
-	end
+	shapes = {love.button()}
+	minishop = 1
+	level = 1
 
+	instructions = love.graphics.newImage('IMG/instructions.png')
+	instructions:setFilter('nearest')
 end
 
 function love.update(dt)
 	explosions:update(dt)
-	projectile:update(dt, shapes)
+	projectile:update(dt, {shapes, enemies.list})
+	antiprojectile:update(dt, heros)
+	enemies:update(dt, heros)
 	heros:update(dt, shapes)
+	if enemies.count == 0 then
+		if minishop == 0 then
+			table.insert(shapes, love.merchant())
+			level = level + 1
+			minishop = 1
+		end
+	end
 end
 
 function love.draw()
 	love.graphics.print('FPS: '..love.timer.getFPS())
 
+	if level == 1 then
+		love.graphics.setColor(255, 255, 255, 100)
+		love.graphics.draw(instructions, love.window.getWidth() / 2 - (instructions:getWidth() / 2 * 4), 150, 0, 4, 4)
+		love.graphics.setColor(255, 255, 255, 255)
+	end
+
+
+
 	for k,v in pairs(shapes) do
 		if v.img then
-			love.graphics.draw(v.img, v.shape._polygon.vertices[1].x, v.shape._polygon.vertices[1].x)
+			local point2 = v.shape._polygon.vertices[2]
+			love.graphics.draw(v.img, point2.x, point2.y, 0, scale, scale)
 		end
-		v.shape:draw()
+		-- v.shape:draw()
 	end
 
 	explosions:draw()
 	projectile:draw()
+	antiprojectile:draw()
+	enemies:draw()
 	heros:draw()
 end
 

@@ -1,13 +1,13 @@
-local projectile = {}
+local antiprojectile = {}
 
-function projectile:new(x, y, orientation)
+function antiprojectile:new(x, y, orientation)
 	table.insert(self.list, {
 		shape = self.HC:addCircle(x * self.scale, y * self.scale, 1),
 		orientation = orientation
 	})
 end
 
-function projectile:init(HC, scale)
+function antiprojectile:init(HC, scale)
 	self.HC = HC
 	self.scale = scale
 	self.winwidth = love.window.getWidth() / self.scale
@@ -16,13 +16,13 @@ function projectile:init(HC, scale)
 	return self
 end
 
-function projectile:remove(shape, k)
+function antiprojectile:remove(shape, k)
 	explosions:new(shape._center.x, shape._center.y)
 	self.HC:remove(shape)
 	table.remove(self.list, k)
 end
 
-function projectile:update(dt, table)
+function antiprojectile:update(dt, heros)
 	for k,v in pairs(self.list) do
 		if v.orientation == 1 then
 			v.shape:move(0, - dt * 1000)
@@ -40,24 +40,18 @@ function projectile:update(dt, table)
 			self:remove(v.shape, k)
 		end
 
-		for _, shapes in pairs(table) do
-			for key,val in pairs(shapes) do
-				if v.shape:collidesWith(val.shape) then
-					print('destroy')
-					val:destroy()
-					self:remove(v.shape, k)
-					break ;
-				end
-			end
+		if v.shape:collidesWith(heros.shape) then
+			heros:take_hit(1)
+			self:remove(v.shape, k)
 		end
 	end
 end
 
-function projectile:draw()
+function antiprojectile:draw()
 	love.graphics.print('Projectiles: '..#self.list, 0, 20)
 	for k,v in pairs(self.list) do
 		v.shape:draw()
 	end
 end
 
-return projectile
+return antiprojectile
