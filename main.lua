@@ -78,14 +78,6 @@ function love.button()
 end
 
 function love.merchant(nbr, x, y)
-	if lastcall == nbr then
-		nbr = nbr + 1
-		if lastcall == nbr then
-			nbr = nbr - 2
-		end
-	end
-	lastcall = nbr
-
 	local shape = {}
 	if nbr == 1 then
 		return merchant.health50(x, y)
